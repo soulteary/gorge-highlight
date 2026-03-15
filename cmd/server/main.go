@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/soulteary/gorge-highlight/internal/config"
@@ -29,7 +30,13 @@ func main() {
 	hl := highlight.New()
 
 	e := echo.New()
-	e.Use(middleware.Logger())
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogStatus: true, LogURI: true, LogMethod: true,
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			slog.Info("REQUEST", "method", v.Method, "uri", v.URI, "status", v.Status)
+			return nil
+		},
+	}))
 	e.Use(middleware.Recover())
 	e.Use(middleware.BodyLimit("2M"))
 
